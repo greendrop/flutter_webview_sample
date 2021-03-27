@@ -45,6 +45,16 @@ class DrawerContent extends HookWidget {
                         '${appConfig.envConfig.baseUrl}/orders/index.html');
                   },
           ),
+          ListTile(
+            title: const Text('News'),
+            onTap: mainWebViewState.controller == null
+                ? null
+                : () {
+                    Navigator.pop(context);
+                    mainWebViewState.controller?.loadUrl(
+                        '${appConfig.envConfig.baseUrl}/news/index.html');
+                  },
+          ),
         ],
       ),
     );
