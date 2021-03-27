@@ -17,8 +17,12 @@ class _$MainAppBarStateTearOff {
   const _$MainAppBarStateTearOff();
 
   _MainAppBarState call(
-      {String title = '', bool backEnabled = false, String backRef = ''}) {
+      {bool leadingEnabled = false,
+      String title = '',
+      bool backEnabled = false,
+      String backRef = ''}) {
     return _MainAppBarState(
+      leadingEnabled: leadingEnabled,
       title: title,
       backEnabled: backEnabled,
       backRef: backRef,
@@ -31,6 +35,7 @@ const $MainAppBarState = _$MainAppBarStateTearOff();
 
 /// @nodoc
 mixin _$MainAppBarState {
+  bool get leadingEnabled => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   bool get backEnabled => throw _privateConstructorUsedError;
   String get backRef => throw _privateConstructorUsedError;
@@ -45,7 +50,8 @@ abstract class $MainAppBarStateCopyWith<$Res> {
   factory $MainAppBarStateCopyWith(
           MainAppBarState value, $Res Function(MainAppBarState) then) =
       _$MainAppBarStateCopyWithImpl<$Res>;
-  $Res call({String title, bool backEnabled, String backRef});
+  $Res call(
+      {bool leadingEnabled, String title, bool backEnabled, String backRef});
 }
 
 /// @nodoc
@@ -59,11 +65,16 @@ class _$MainAppBarStateCopyWithImpl<$Res>
 
   @override
   $Res call({
+    Object? leadingEnabled = freezed,
     Object? title = freezed,
     Object? backEnabled = freezed,
     Object? backRef = freezed,
   }) {
     return _then(_value.copyWith(
+      leadingEnabled: leadingEnabled == freezed
+          ? _value.leadingEnabled
+          : leadingEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
       title: title == freezed
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -87,7 +98,8 @@ abstract class _$MainAppBarStateCopyWith<$Res>
           _MainAppBarState value, $Res Function(_MainAppBarState) then) =
       __$MainAppBarStateCopyWithImpl<$Res>;
   @override
-  $Res call({String title, bool backEnabled, String backRef});
+  $Res call(
+      {bool leadingEnabled, String title, bool backEnabled, String backRef});
 }
 
 /// @nodoc
@@ -103,11 +115,16 @@ class __$MainAppBarStateCopyWithImpl<$Res>
 
   @override
   $Res call({
+    Object? leadingEnabled = freezed,
     Object? title = freezed,
     Object? backEnabled = freezed,
     Object? backRef = freezed,
   }) {
     return _then(_MainAppBarState(
+      leadingEnabled: leadingEnabled == freezed
+          ? _value.leadingEnabled
+          : leadingEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
       title: title == freezed
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -127,9 +144,15 @@ class __$MainAppBarStateCopyWithImpl<$Res>
 /// @nodoc
 class _$_MainAppBarState extends _MainAppBarState {
   _$_MainAppBarState(
-      {this.title = '', this.backEnabled = false, this.backRef = ''})
+      {this.leadingEnabled = false,
+      this.title = '',
+      this.backEnabled = false,
+      this.backRef = ''})
       : super._();
 
+  @JsonKey(defaultValue: false)
+  @override
+  final bool leadingEnabled;
   @JsonKey(defaultValue: '')
   @override
   final String title;
@@ -142,13 +165,16 @@ class _$_MainAppBarState extends _MainAppBarState {
 
   @override
   String toString() {
-    return 'MainAppBarState(title: $title, backEnabled: $backEnabled, backRef: $backRef)';
+    return 'MainAppBarState(leadingEnabled: $leadingEnabled, title: $title, backEnabled: $backEnabled, backRef: $backRef)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other is _MainAppBarState &&
+            (identical(other.leadingEnabled, leadingEnabled) ||
+                const DeepCollectionEquality()
+                    .equals(other.leadingEnabled, leadingEnabled)) &&
             (identical(other.title, title) ||
                 const DeepCollectionEquality().equals(other.title, title)) &&
             (identical(other.backEnabled, backEnabled) ||
@@ -161,6 +187,7 @@ class _$_MainAppBarState extends _MainAppBarState {
   @override
   int get hashCode =>
       runtimeType.hashCode ^
+      const DeepCollectionEquality().hash(leadingEnabled) ^
       const DeepCollectionEquality().hash(title) ^
       const DeepCollectionEquality().hash(backEnabled) ^
       const DeepCollectionEquality().hash(backRef);
@@ -172,10 +199,15 @@ class _$_MainAppBarState extends _MainAppBarState {
 }
 
 abstract class _MainAppBarState extends MainAppBarState {
-  factory _MainAppBarState({String title, bool backEnabled, String backRef}) =
-      _$_MainAppBarState;
+  factory _MainAppBarState(
+      {bool leadingEnabled,
+      String title,
+      bool backEnabled,
+      String backRef}) = _$_MainAppBarState;
   _MainAppBarState._() : super._();
 
+  @override
+  bool get leadingEnabled => throw _privateConstructorUsedError;
   @override
   String get title => throw _privateConstructorUsedError;
   @override

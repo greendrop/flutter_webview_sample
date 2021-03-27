@@ -49,6 +49,10 @@ class MainPage extends HookWidget {
           appBar: AppBar(
               leading: Builder(
                 builder: (BuildContext context) {
+                  if (!mainAppBarState.leadingEnabled) {
+                    return Container();
+                  }
+
                   return IconButton(
                     icon: Icon(mainAppBarState.backEnabled
                         ? Icons.arrow_back
@@ -93,12 +97,14 @@ class MainPage extends HookWidget {
                   return NavigationDecision.navigate;
                 },
                 onWebViewCreated: (WebViewController webViewController) {
+                  _clearAppBarState(mainAppBarStateNotifier);
                   index.value = progressIndex;
                   mainWebViewStateNotifier.setController(webViewController);
                   mainWebViewControllerCompleter.value
                       .complete(webViewController);
                 },
                 onPageStarted: (String url) {
+                  _clearAppBarState(mainAppBarStateNotifier);
                   index.value = progressIndex;
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: Text(url),
@@ -114,6 +120,14 @@ class MainPage extends HookWidget {
     );
   }
 
+  void _clearAppBarState(MainAppBarStateNotifier stateNotifier) {
+    stateNotifier
+      ..setLeadingEnabled(false)
+      ..setTitle('')
+      ..setBackEnabled(false)
+      ..setBackRef('');
+  }
+
   Future<void> _getAppBarState(MainAppBarStateNotifier stateNotifier,
       WebViewController controller) async {
     var javascript = '';
@@ -125,7 +139,9 @@ class MainPage extends HookWidget {
 
     javascript = "document.querySelector('.js-app-back-enabled').value";
     result = await controller.evaluateJavascript(javascript);
-    stateNotifier.setBackEnabled(result == 'true');
+    stateNotifier
+      ..setBackEnabled(result == 'true')
+      ..setLeadingEnabled(true);
 
     javascript = "document.querySelector('.js-app-back-ref').value";
     result = await controller.evaluateJavascript(javascript);
