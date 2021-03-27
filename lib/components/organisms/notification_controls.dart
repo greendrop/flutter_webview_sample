@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_webview_sample/config/app_config.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+enum Answers {
+  // ignore: constant_identifier_names
+  CLOSE,
+}
+
 class NotificationControls extends HookWidget {
-  const NotificationControls(this._mainWebViewControllerFuture)
-      : assert(_mainWebViewControllerFuture != null);
+  const NotificationControls(this._mainWebViewControllerFuture);
 
   final Future<WebViewController> _mainWebViewControllerFuture;
 
@@ -17,9 +22,12 @@ class NotificationControls extends HookWidget {
         future: _mainWebViewControllerFuture,
         builder:
             (BuildContext context, AsyncSnapshot<WebViewController> snapshot) {
-          final bool mainWebViewReady =
+          final appConfig = AppConfig();
+          final initialUrl =
+              '${appConfig.envConfig.baseUrl}/notifications/index.html';
+          final mainWebViewReady =
               snapshot.connectionState == ConnectionState.done;
-          final WebViewController mainWebViewController = snapshot.data;
+          final mainWebViewController = snapshot.data;
 
           return Row(
             children: <Widget>[
@@ -28,13 +36,13 @@ class NotificationControls extends HookWidget {
                   onPressed: !mainWebViewReady
                       ? null
                       : () {
-                          showDialog(
+                          showDialog<Answers>(
                             context: context,
                             builder: (BuildContext context) {
-                              num index = 0;
+                              var index = 0;
 
                               return AlertDialog(
-                                title: Text("Notification"),
+                                title: const Text('Notification'),
                                 content: StatefulBuilder(builder:
                                     (BuildContext context,
                                         StateSetter setState) {
@@ -43,14 +51,21 @@ class NotificationControls extends HookWidget {
                                           index: index,
                                           children: <Widget>[
                                         WebView(
-                                          initialUrl:
-                                              'https://news.google.com/',
+                                          initialUrl: initialUrl,
                                           javascriptMode:
                                               JavascriptMode.unrestricted,
                                           gestureNavigationEnabled: true,
                                           navigationDelegate:
                                               (NavigationRequest request) {
-                                            return NavigationDecision.navigate;
+                                            if (request.url == initialUrl) {
+                                              return NavigationDecision
+                                                  .navigate;
+                                            }
+                                            mainWebViewController!
+                                                .loadUrl(request.url);
+                                            Navigator.pop(
+                                                context, Answers.CLOSE);
+                                            return NavigationDecision.prevent;
                                           },
                                           onWebViewCreated: (WebViewController
                                               webViewController) {
@@ -70,18 +85,21 @@ class NotificationControls extends HookWidget {
                                           },
                                         ),
                                         Container(
-                                            child: Center(
+                                            child: const Center(
                                                 child:
+                                                    // ignore: lines_longer_than_80_chars
                                                     CircularProgressIndicator())),
                                       ]));
                                 }),
                                 actions: <Widget>[
                                   TextButton(
-                                    child: Text("CLOSE"),
-                                    onPressed: () => Navigator.pop(context),
+                                    // ignore: lines_longer_than_80_chars
+                                    onPressed: () =>
+                                        Navigator.pop(context, Answers.CLOSE),
+                                    child: const Text('CLOSE'),
                                   ),
                                 ],
-                                contentPadding: EdgeInsets.all(0.0),
+                                contentPadding: const EdgeInsets.all(0),
                               );
                             },
                           );

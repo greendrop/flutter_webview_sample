@@ -3,8 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class NavigationControls extends HookWidget {
-  const NavigationControls(this._mainWebViewControllerFuture)
-      : assert(_mainWebViewControllerFuture != null);
+  const NavigationControls(this._mainWebViewControllerFuture);
 
   final Future<WebViewController> _mainWebViewControllerFuture;
 
@@ -14,18 +13,14 @@ class NavigationControls extends HookWidget {
       future: _mainWebViewControllerFuture,
       builder:
           (BuildContext context, AsyncSnapshot<WebViewController> snapshot) {
-        final bool mainWebViewReady =
+        final mainWebViewReady =
             snapshot.connectionState == ConnectionState.done;
-        final WebViewController controller = snapshot.data;
+        final controller = snapshot.data;
         return Row(
           children: <Widget>[
             IconButton(
               icon: const Icon(Icons.replay),
-              onPressed: !mainWebViewReady
-                  ? null
-                  : () {
-                      controller.reload();
-                    },
+              onPressed: !mainWebViewReady ? null : controller!.reload,
             ),
           ],
         );
