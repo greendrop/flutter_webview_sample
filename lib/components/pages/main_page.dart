@@ -13,6 +13,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+enum DialogAnswers {
+  // ignore: constant_identifier_names
+  CLOSE,
+}
+
 class MainPage extends HookWidget {
   static const webViewIndex = 0;
   static const progressIndex = 1;
@@ -113,8 +118,10 @@ class MainPage extends HookWidget {
                 onPageFinished: (String url) async {
                   await _getAppBarState(
                       mainAppBarStateNotifier, mainWebViewState.controller!);
+                  await _defineJavascriptAlert(mainWebViewState.controller!);
                   index.value = webViewIndex;
-                }),
+                },
+                javascriptChannels: {_createJavascriptChannelAlert(context)}),
             Container(child: const Center(child: CircularProgressIndicator())),
           ])),
     );
@@ -146,6 +153,40 @@ class MainPage extends HookWidget {
     javascript = "document.querySelector('.js-app-back-ref').value";
     result = await controller.evaluateJavascript(javascript);
     stateNotifier.setBackRef(result);
+  }
+
+  Future<void> _defineJavascriptAlert(WebViewController controller) async {
+    try {
+      const javascript = '''
+            window.alert = function (str){
+              Alert.postMessage(str);
+            }
+          ''';
+      await controller.evaluateJavascript(javascript);
+      // ignore: avoid_catches_without_on_clauses
+    } catch (_) {}
+  }
+
+  JavascriptChannel _createJavascriptChannelAlert(BuildContext context) {
+    return JavascriptChannel(
+        name: 'Alert',
+        onMessageReceived: (JavascriptMessage javascrirptMessage) {
+          showDialog<DialogAnswers>(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  content: Text(javascrirptMessage.message),
+                  actions: <Widget>[
+                    TextButton(
+                      // ignore: lines_longer_than_80_chars
+                      onPressed: () =>
+                          Navigator.pop(context, DialogAnswers.CLOSE),
+                      child: const Text('CLOSE'),
+                    ),
+                  ],
+                );
+              });
+        });
   }
 
   Future<void> _launchURL(String url) async {

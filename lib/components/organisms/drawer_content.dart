@@ -65,6 +65,16 @@ class DrawerContent extends HookWidget {
                         '${appConfig.envConfig.baseUrl}/forms/index.html');
                   },
           ),
+          ListTile(
+            title: const Text('Javascript'),
+            onTap: mainWebViewState.controller == null
+                ? null
+                : () {
+                    Navigator.pop(context);
+                    mainWebViewState.controller?.loadUrl(
+                        '${appConfig.envConfig.baseUrl}/javascript/index.html');
+                  },
+          ),
         ],
       ),
     );
