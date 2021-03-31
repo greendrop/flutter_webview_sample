@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_webview_sample/config/app_config.dart';
 import 'package:flutter_webview_sample/states/state_provider.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -31,8 +32,9 @@ class DrawerContent extends HookWidget {
                 ? null
                 : () {
                     Navigator.pop(context);
+                    final url = appConfig.envConfig.baseUrl;
                     mainWebViewState.controller
-                        ?.loadUrl(appConfig.envConfig.baseUrl);
+                        ?.loadUrl(urlRequest: URLRequest(url: Uri.parse(url)));
                   },
           ),
           ListTile(
@@ -41,8 +43,10 @@ class DrawerContent extends HookWidget {
                 ? null
                 : () {
                     Navigator.pop(context);
-                    mainWebViewState.controller?.loadUrl(
-                        '${appConfig.envConfig.baseUrl}/orders/index.html');
+                    final url =
+                        '${appConfig.envConfig.baseUrl}/orders/index.html';
+                    mainWebViewState.controller
+                        ?.loadUrl(urlRequest: URLRequest(url: Uri.parse(url)));
                   },
           ),
           ListTile(
@@ -51,8 +55,10 @@ class DrawerContent extends HookWidget {
                 ? null
                 : () {
                     Navigator.pop(context);
-                    mainWebViewState.controller?.loadUrl(
-                        '${appConfig.envConfig.baseUrl}/news/index.html');
+                    final url =
+                        '${appConfig.envConfig.baseUrl}/news/index.html';
+                    mainWebViewState.controller
+                        ?.loadUrl(urlRequest: URLRequest(url: Uri.parse(url)));
                   },
           ),
           ListTile(
@@ -61,8 +67,10 @@ class DrawerContent extends HookWidget {
                 ? null
                 : () {
                     Navigator.pop(context);
-                    mainWebViewState.controller?.loadUrl(
-                        '${appConfig.envConfig.baseUrl}/forms/index.html');
+                    final url =
+                        '${appConfig.envConfig.baseUrl}/forms/index.html';
+                    mainWebViewState.controller
+                        ?.loadUrl(urlRequest: URLRequest(url: Uri.parse(url)));
                   },
           ),
           ListTile(
@@ -71,8 +79,10 @@ class DrawerContent extends HookWidget {
                 ? null
                 : () {
                     Navigator.pop(context);
-                    mainWebViewState.controller?.loadUrl(
-                        '${appConfig.envConfig.baseUrl}/javascript/index.html');
+                    final url =
+                        '${appConfig.envConfig.baseUrl}/javascript/index.html';
+                    mainWebViewState.controller
+                        ?.loadUrl(urlRequest: URLRequest(url: Uri.parse(url)));
                   },
           ),
         ],

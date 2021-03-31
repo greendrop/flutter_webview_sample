@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_webview_sample/config/app_config.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 enum Answers {
   // ignore: constant_identifier_names
@@ -11,17 +11,29 @@ enum Answers {
 class NotificationControls extends HookWidget {
   const NotificationControls(this._mainWebViewControllerFuture);
 
-  final Future<WebViewController> _mainWebViewControllerFuture;
+  final Future<InAppWebViewController> _mainWebViewControllerFuture;
 
   static const webViewIndex = 0;
   static const progressIndex = 1;
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<WebViewController>(
+    return FutureBuilder<InAppWebViewController>(
         future: _mainWebViewControllerFuture,
-        builder:
-            (BuildContext context, AsyncSnapshot<WebViewController> snapshot) {
+        builder: (BuildContext context,
+            AsyncSnapshot<InAppWebViewController> snapshot) {
+          final webViewKey = GlobalKey();
+          final options = InAppWebViewGroupOptions(
+              crossPlatform: InAppWebViewOptions(
+                useShouldOverrideUrlLoading: true,
+                mediaPlaybackRequiresUserGesture: false,
+              ),
+              android: AndroidInAppWebViewOptions(
+                useHybridComposition: true,
+              ),
+              ios: IOSInAppWebViewOptions(
+                allowsInlineMediaPlayback: true,
+              ));
           final appConfig = AppConfig();
           final initialUrl =
               '${appConfig.envConfig.baseUrl}/notifications/index.html';
@@ -47,49 +59,65 @@ class NotificationControls extends HookWidget {
                                     (BuildContext context,
                                         StateSetter setState) {
                                   return Container(
-                                      child: IndexedStack(
-                                          index: index,
-                                          children: <Widget>[
-                                        WebView(
-                                          initialUrl: initialUrl,
-                                          javascriptMode:
-                                              JavascriptMode.unrestricted,
-                                          gestureNavigationEnabled: true,
-                                          navigationDelegate:
-                                              (NavigationRequest request) {
-                                            if (request.url == initialUrl) {
-                                              return NavigationDecision
-                                                  .navigate;
-                                            }
-                                            mainWebViewController!
-                                                .loadUrl(request.url);
-                                            Navigator.pop(
-                                                context, Answers.CLOSE);
-                                            return NavigationDecision.prevent;
-                                          },
-                                          onWebViewCreated: (WebViewController
-                                              webViewController) {
-                                            setState(() {
-                                              index = progressIndex;
-                                            });
-                                          },
-                                          onPageStarted: (String url) {
-                                            setState(() {
-                                              index = progressIndex;
-                                            });
-                                          },
-                                          onPageFinished: (String url) {
+                                      child:
+                                          IndexedStack(index: index, children: <
+                                              Widget>[
+                                    InAppWebView(
+                                        key: webViewKey,
+                                        initialUrlRequest: URLRequest(
+                                            url: Uri.parse(initialUrl)),
+                                        initialOptions: options,
+                                        onWebViewCreated: (controller) {
+                                          setState(() {
+                                            index = progressIndex;
+                                          });
+                                        },
+                                        onLoadStart: (controller, url) {
+                                          setState(() {
+                                            index = progressIndex;
+                                          });
+                                        },
+                                        androidOnPermissionRequest: (controller,
+                                            origin, resources) async {
+                                          return PermissionRequestResponse(
+                                              resources: resources,
+                                              action:
+                                                  // ignore: lines_longer_than_80_chars
+                                                  PermissionRequestResponseAction
+                                                      .GRANT);
+                                        },
+                                        shouldOverrideUrlLoading: (controller,
+                                            navigationAction) async {
+                                          final url = navigationAction
+                                              .request.url!
+                                              .toString();
+                                          if (url == initialUrl) {
+                                            return NavigationActionPolicy.ALLOW;
+                                          }
+                                          await mainWebViewController!.loadUrl(
+                                              urlRequest: URLRequest(
+                                                  url: Uri.parse(url)));
+                                          Navigator.pop(context, Answers.CLOSE);
+                                          return NavigationActionPolicy.CANCEL;
+                                        },
+                                        onProgressChanged:
+                                            (controller, progress) {
+                                          if (progress == 100) {
                                             setState(() {
                                               index = webViewIndex;
                                             });
-                                          },
-                                        ),
-                                        Container(
-                                            child: const Center(
-                                                child:
-                                                    // ignore: lines_longer_than_80_chars
-                                                    CircularProgressIndicator())),
-                                      ]));
+                                          }
+                                        },
+                                        onConsoleMessage:
+                                            (controller, consoleMessage) {
+                                          print(consoleMessage);
+                                        }),
+                                    Container(
+                                        child: const Center(
+                                            child:
+                                                // ignore: lines_longer_than_80_chars
+                                                CircularProgressIndicator())),
+                                  ]));
                                 }),
                                 actions: <Widget>[
                                   TextButton(

@@ -16,7 +16,7 @@ final _privateConstructorUsedError = UnsupportedError(
 class _$MainWebViewStateTearOff {
   const _$MainWebViewStateTearOff();
 
-  _MainWebViewState call({WebViewController? controller}) {
+  _MainWebViewState call({InAppWebViewController? controller}) {
     return _MainWebViewState(
       controller: controller,
     );
@@ -28,7 +28,7 @@ const $MainWebViewState = _$MainWebViewStateTearOff();
 
 /// @nodoc
 mixin _$MainWebViewState {
-  WebViewController? get controller => throw _privateConstructorUsedError;
+  InAppWebViewController? get controller => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $MainWebViewStateCopyWith<MainWebViewState> get copyWith =>
@@ -40,7 +40,7 @@ abstract class $MainWebViewStateCopyWith<$Res> {
   factory $MainWebViewStateCopyWith(
           MainWebViewState value, $Res Function(MainWebViewState) then) =
       _$MainWebViewStateCopyWithImpl<$Res>;
-  $Res call({WebViewController? controller});
+  $Res call({InAppWebViewController? controller});
 }
 
 /// @nodoc
@@ -60,7 +60,7 @@ class _$MainWebViewStateCopyWithImpl<$Res>
       controller: controller == freezed
           ? _value.controller
           : controller // ignore: cast_nullable_to_non_nullable
-              as WebViewController?,
+              as InAppWebViewController?,
     ));
   }
 }
@@ -72,7 +72,7 @@ abstract class _$MainWebViewStateCopyWith<$Res>
           _MainWebViewState value, $Res Function(_MainWebViewState) then) =
       __$MainWebViewStateCopyWithImpl<$Res>;
   @override
-  $Res call({WebViewController? controller});
+  $Res call({InAppWebViewController? controller});
 }
 
 /// @nodoc
@@ -94,7 +94,7 @@ class __$MainWebViewStateCopyWithImpl<$Res>
       controller: controller == freezed
           ? _value.controller
           : controller // ignore: cast_nullable_to_non_nullable
-              as WebViewController?,
+              as InAppWebViewController?,
     ));
   }
 }
@@ -104,7 +104,7 @@ class _$_MainWebViewState extends _MainWebViewState {
   _$_MainWebViewState({this.controller}) : super._();
 
   @override
-  final WebViewController? controller;
+  final InAppWebViewController? controller;
 
   @override
   String toString() {
@@ -131,12 +131,12 @@ class _$_MainWebViewState extends _MainWebViewState {
 }
 
 abstract class _MainWebViewState extends MainWebViewState {
-  factory _MainWebViewState({WebViewController? controller}) =
+  factory _MainWebViewState({InAppWebViewController? controller}) =
       _$_MainWebViewState;
   _MainWebViewState._() : super._();
 
   @override
-  WebViewController? get controller => throw _privateConstructorUsedError;
+  InAppWebViewController? get controller => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
   _$MainWebViewStateCopyWith<_MainWebViewState> get copyWith =>

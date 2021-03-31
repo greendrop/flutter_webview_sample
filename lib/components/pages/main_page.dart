@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_webview_sample/components/organisms/drawer_content.dart';
 import 'package:flutter_webview_sample/components/organisms/navigation_controls.dart';
 import 'package:flutter_webview_sample/components/organisms/notification_controls.dart';
@@ -11,7 +11,6 @@ import 'package:flutter_webview_sample/states/main_app_bar_state.dart';
 import 'package:flutter_webview_sample/states/state_provider.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 enum DialogAnswers {
   // ignore: constant_identifier_names
@@ -21,6 +20,18 @@ enum DialogAnswers {
 class MainPage extends HookWidget {
   static const webViewIndex = 0;
   static const progressIndex = 1;
+  final GlobalKey webViewKey = GlobalKey();
+  final options = InAppWebViewGroupOptions(
+      crossPlatform: InAppWebViewOptions(
+        useShouldOverrideUrlLoading: true,
+        mediaPlaybackRequiresUserGesture: false,
+      ),
+      android: AndroidInAppWebViewOptions(
+        useHybridComposition: true,
+      ),
+      ios: IOSInAppWebViewOptions(
+        allowsInlineMediaPlayback: true,
+      ));
 
   @override
   Widget build(BuildContext context) {
@@ -30,16 +41,8 @@ class MainPage extends HookWidget {
     final mainAppBarStateNotifier = useProvider(mainAppBarStateProvider);
     final mainAppBarState = useProvider(mainAppBarStateProvider.state);
     final mainWebViewControllerCompleter =
-        useState(Completer<WebViewController>());
+        useState(Completer<InAppWebViewController>());
     final index = useState(webViewIndex);
-
-    useEffect(() {
-      if (Platform.isAndroid) {
-        WebView.platform = SurfaceAndroidWebView();
-      }
-
-      return () {};
-    }, const []);
 
     return WillPopScope(
       onWillPop: () async {
@@ -73,7 +76,8 @@ class MainPage extends HookWidget {
                             await mainWebViewState.controller!.goBack();
                           }
                         } else {
-                          await mainWebViewState.controller!.loadUrl(url);
+                          await mainWebViewState.controller!.loadUrl(
+                              urlRequest: URLRequest(url: Uri.parse(url)));
                         }
                       } else {
                         Scaffold.of(context).openDrawer();
@@ -90,38 +94,48 @@ class MainPage extends HookWidget {
               ]),
           drawer: DrawerContent(),
           body: IndexedStack(index: index.value, children: <Widget>[
-            WebView(
-                initialUrl: appConfig.envConfig.baseUrl,
-                javascriptMode: JavascriptMode.unrestricted,
-                gestureNavigationEnabled: true,
-                navigationDelegate: (NavigationRequest request) {
-                  if (!request.url.startsWith(appConfig.envConfig.baseUrl)) {
-                    _launchURL(request.url);
-                    return NavigationDecision.prevent;
-                  }
-                  return NavigationDecision.navigate;
-                },
-                onWebViewCreated: (WebViewController webViewController) {
-                  _clearAppBarState(mainAppBarStateNotifier);
-                  index.value = progressIndex;
-                  mainWebViewStateNotifier.setController(webViewController);
-                  mainWebViewControllerCompleter.value
-                      .complete(webViewController);
-                },
-                onPageStarted: (String url) {
-                  _clearAppBarState(mainAppBarStateNotifier);
-                  index.value = progressIndex;
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(url),
-                  ));
-                },
-                onPageFinished: (String url) async {
-                  await _getAppBarState(
-                      mainAppBarStateNotifier, mainWebViewState.controller!);
-                  await _defineJavascriptAlert(mainWebViewState.controller!);
+            InAppWebView(
+              key: webViewKey,
+              initialUrlRequest:
+                  URLRequest(url: Uri.parse(appConfig.envConfig.baseUrl)),
+              initialOptions: options,
+              onWebViewCreated: (controller) {
+                _clearAppBarState(mainAppBarStateNotifier);
+                index.value = progressIndex;
+                mainWebViewStateNotifier.setController(controller);
+                mainWebViewControllerCompleter.value.complete(controller);
+              },
+              onLoadStart: (controller, url) {
+                _clearAppBarState(mainAppBarStateNotifier);
+                index.value = progressIndex;
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(url.toString()),
+                ));
+              },
+              androidOnPermissionRequest:
+                  (controller, origin, resources) async {
+                return PermissionRequestResponse(
+                    resources: resources,
+                    action: PermissionRequestResponseAction.GRANT);
+              },
+              shouldOverrideUrlLoading: (controller, navigationAction) async {
+                final url = navigationAction.request.url!.toString();
+                if (!url.startsWith(appConfig.envConfig.baseUrl)) {
+                  await _launchURL(url);
+                  return NavigationActionPolicy.CANCEL;
+                }
+                return NavigationActionPolicy.ALLOW;
+              },
+              onProgressChanged: (controller, progress) async {
+                if (progress == 100) {
+                  await _getAppBarState(mainAppBarStateNotifier, controller);
                   index.value = webViewIndex;
-                },
-                javascriptChannels: {_createJavascriptChannelAlert(context)}),
+                }
+              },
+              onConsoleMessage: (controller, consoleMessage) {
+                print(consoleMessage);
+              },
+            ),
             Container(child: const Center(child: CircularProgressIndicator())),
           ])),
     );
@@ -136,57 +150,23 @@ class MainPage extends HookWidget {
   }
 
   Future<void> _getAppBarState(MainAppBarStateNotifier stateNotifier,
-      WebViewController controller) async {
+      InAppWebViewController controller) async {
     var javascript = '';
-    var result = '';
+    dynamic result;
 
     javascript = "document.querySelector('.js-app-title').value";
-    result = await controller.evaluateJavascript(javascript);
-    stateNotifier.setTitle(result);
+    result = await controller.evaluateJavascript(source: javascript);
+    stateNotifier.setTitle(result.toString());
 
     javascript = "document.querySelector('.js-app-back-enabled').value";
-    result = await controller.evaluateJavascript(javascript);
+    result = await controller.evaluateJavascript(source: javascript);
     stateNotifier
-      ..setBackEnabled(result == 'true')
+      ..setBackEnabled(result.toString() == 'true')
       ..setLeadingEnabled(true);
 
     javascript = "document.querySelector('.js-app-back-ref').value";
-    result = await controller.evaluateJavascript(javascript);
-    stateNotifier.setBackRef(result);
-  }
-
-  Future<void> _defineJavascriptAlert(WebViewController controller) async {
-    try {
-      const javascript = '''
-            window.alert = function (str){
-              Alert.postMessage(str);
-            }
-          ''';
-      await controller.evaluateJavascript(javascript);
-      // ignore: avoid_catches_without_on_clauses
-    } catch (_) {}
-  }
-
-  JavascriptChannel _createJavascriptChannelAlert(BuildContext context) {
-    return JavascriptChannel(
-        name: 'Alert',
-        onMessageReceived: (JavascriptMessage javascrirptMessage) {
-          showDialog<DialogAnswers>(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  content: Text(javascrirptMessage.message),
-                  actions: <Widget>[
-                    TextButton(
-                      // ignore: lines_longer_than_80_chars
-                      onPressed: () =>
-                          Navigator.pop(context, DialogAnswers.CLOSE),
-                      child: const Text('CLOSE'),
-                    ),
-                  ],
-                );
-              });
-        });
+    result = await controller.evaluateJavascript(source: javascript);
+    stateNotifier.setBackRef(result.toString());
   }
 
   Future<void> _launchURL(String url) async {

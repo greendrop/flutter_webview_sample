@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 class NavigationControls extends HookWidget {
   const NavigationControls(this._mainWebViewControllerFuture);
 
-  final Future<WebViewController> _mainWebViewControllerFuture;
+  final Future<InAppWebViewController> _mainWebViewControllerFuture;
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<WebViewController>(
+    return FutureBuilder<InAppWebViewController>(
       future: _mainWebViewControllerFuture,
-      builder:
-          (BuildContext context, AsyncSnapshot<WebViewController> snapshot) {
+      builder: (BuildContext context,
+          AsyncSnapshot<InAppWebViewController> snapshot) {
         final mainWebViewReady =
             snapshot.connectionState == ConnectionState.done;
         final controller = snapshot.data;
