@@ -12,11 +12,6 @@ import 'package:flutter_webview_sample/states/state_provider.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-enum DialogAnswers {
-  // ignore: constant_identifier_names
-  CLOSE,
-}
-
 class MainPage extends HookWidget {
   static const webViewIndex = 0;
   static const progressIndex = 1;
@@ -43,6 +38,13 @@ class MainPage extends HookWidget {
     final mainWebViewControllerCompleter =
         useState(Completer<InAppWebViewController>());
     final index = useState(webViewIndex);
+    final promptTextController = useState(TextEditingController());
+
+    useEffect(() {
+      return () {
+        promptTextController.value.dispose();
+      };
+    }, []);
 
     return WillPopScope(
       onWillPop: () async {
@@ -95,47 +97,129 @@ class MainPage extends HookWidget {
           drawer: DrawerContent(),
           body: IndexedStack(index: index.value, children: <Widget>[
             InAppWebView(
-              key: webViewKey,
-              initialUrlRequest:
-                  URLRequest(url: Uri.parse(appConfig.envConfig.baseUrl)),
-              initialOptions: options,
-              onWebViewCreated: (controller) {
-                _clearAppBarState(mainAppBarStateNotifier);
-                index.value = progressIndex;
-                mainWebViewStateNotifier.setController(controller);
-                mainWebViewControllerCompleter.value.complete(controller);
-              },
-              onLoadStart: (controller, url) {
-                _clearAppBarState(mainAppBarStateNotifier);
-                index.value = progressIndex;
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(url.toString()),
-                ));
-              },
-              androidOnPermissionRequest:
-                  (controller, origin, resources) async {
-                return PermissionRequestResponse(
-                    resources: resources,
-                    action: PermissionRequestResponseAction.GRANT);
-              },
-              shouldOverrideUrlLoading: (controller, navigationAction) async {
-                final url = navigationAction.request.url!.toString();
-                if (!url.startsWith(appConfig.envConfig.baseUrl)) {
-                  await _launchURL(url);
-                  return NavigationActionPolicy.CANCEL;
-                }
-                return NavigationActionPolicy.ALLOW;
-              },
-              onProgressChanged: (controller, progress) async {
-                if (progress == 100) {
-                  await _getAppBarState(mainAppBarStateNotifier, controller);
-                  index.value = webViewIndex;
-                }
-              },
-              onConsoleMessage: (controller, consoleMessage) {
-                print(consoleMessage);
-              },
-            ),
+                key: webViewKey,
+                initialUrlRequest:
+                    URLRequest(url: Uri.parse(appConfig.envConfig.baseUrl)),
+                initialOptions: options,
+                onWebViewCreated: (controller) {
+                  _clearAppBarState(mainAppBarStateNotifier);
+                  index.value = progressIndex;
+                  mainWebViewStateNotifier.setController(controller);
+                  mainWebViewControllerCompleter.value.complete(controller);
+                },
+                onLoadStart: (controller, url) {
+                  _clearAppBarState(mainAppBarStateNotifier);
+                  index.value = progressIndex;
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(url.toString()),
+                  ));
+                },
+                androidOnPermissionRequest:
+                    (controller, origin, resources) async {
+                  return PermissionRequestResponse(
+                      resources: resources,
+                      action: PermissionRequestResponseAction.GRANT);
+                },
+                shouldOverrideUrlLoading: (controller, navigationAction) async {
+                  final url = navigationAction.request.url!.toString();
+                  if (!url.startsWith(appConfig.envConfig.baseUrl)) {
+                    await _launchURL(url);
+                    return NavigationActionPolicy.CANCEL;
+                  }
+                  return NavigationActionPolicy.ALLOW;
+                },
+                onProgressChanged: (controller, progress) async {
+                  if (progress == 100) {
+                    await _getAppBarState(mainAppBarStateNotifier, controller);
+                    index.value = webViewIndex;
+                  }
+                },
+                onConsoleMessage: (controller, consoleMessage) {
+                  print(consoleMessage);
+                },
+                onJsAlert: (controller, jsAlertRequest) async {
+                  final completer = Completer<JsAlertResponse?>();
+                  final response = JsAlertResponse();
+                  await showDialog<String>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          content: Text(jsAlertRequest.message.toString()),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, 'CLOSE'),
+                              child: const Text('CLOSE'),
+                            ),
+                          ],
+                        );
+                      });
+                  response.handledByClient = true;
+                  completer.complete(response);
+                  return completer.future;
+                },
+                onJsConfirm: (controller, jsConfirmRequest) async {
+                  final completer = Completer<JsConfirmResponse>();
+                  final response = JsConfirmResponse();
+                  final result = await showDialog<String>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          content: Text(jsConfirmRequest.message.toString()),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, 'CANCEL'),
+                              child: const Text('CANCEL'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, 'OK'),
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        );
+                      });
+                  response
+                    ..handledByClient = true
+                    ..action = result == 'OK'
+                        ? JsConfirmResponseAction.CONFIRM
+                        : JsConfirmResponseAction.CANCEL;
+                  completer.complete(response);
+                  return completer.future;
+                },
+                onJsPrompt: (controller, jsPromptRequest) async {
+                  final completer = Completer<JsPromptResponse>();
+                  final response = JsPromptResponse();
+                  promptTextController.value.text = '';
+                  final result = await showDialog<String>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          content: TextField(
+                              controller: promptTextController.value,
+                              decoration: InputDecoration(
+                                hintText: jsPromptRequest.message.toString(),
+                              ),
+                              autofocus: true),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, 'CANCEL'),
+                              child: const Text('CANCEL'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, 'OK'),
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        );
+                      });
+                  response
+                    ..handledByClient = true
+                    ..value = promptTextController.value.text
+                    ..action = result == 'OK'
+                        ? JsPromptResponseAction.CONFIRM
+                        : JsPromptResponseAction.CANCEL;
+                  completer.complete(response);
+                  return completer.future;
+                }),
             Container(child: const Center(child: CircularProgressIndicator())),
           ])),
     );
