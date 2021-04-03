@@ -15,8 +15,7 @@ import 'package:url_launcher/url_launcher.dart';
 class MainPage extends HookWidget {
   static const webViewIndex = 0;
   static const progressIndex = 1;
-  final GlobalKey webViewKey = GlobalKey();
-  final options = InAppWebViewGroupOptions(
+  static InAppWebViewGroupOptions webViewOptions = InAppWebViewGroupOptions(
       crossPlatform: InAppWebViewOptions(
         useShouldOverrideUrlLoading: true,
         mediaPlaybackRequiresUserGesture: false,
@@ -70,9 +69,8 @@ class MainPage extends HookWidget {
                     onPressed: () async {
                       if (mainAppBarState.backEnabled) {
                         final ref = mainAppBarState.backRef;
-                        final url = ref.startsWith('/')
-                            ? appConfig.envConfig.baseUrl + ref
-                            : ref;
+                        final url =
+                            ref.startsWith('/') ? appConfig.baseUrl + ref : ref;
                         if (ref.startsWith('javascript:history.back()')) {
                           if (await mainWebViewState.controller!.canGoBack()) {
                             await mainWebViewState.controller!.goBack();
@@ -97,10 +95,9 @@ class MainPage extends HookWidget {
           drawer: DrawerContent(),
           body: IndexedStack(index: index.value, children: <Widget>[
             InAppWebView(
-                key: webViewKey,
                 initialUrlRequest:
-                    URLRequest(url: Uri.parse(appConfig.envConfig.baseUrl)),
-                initialOptions: options,
+                    URLRequest(url: Uri.parse(appConfig.baseUrl)),
+                initialOptions: webViewOptions,
                 onWebViewCreated: (controller) {
                   _clearAppBarState(mainAppBarStateNotifier);
                   index.value = progressIndex;
@@ -122,7 +119,7 @@ class MainPage extends HookWidget {
                 },
                 shouldOverrideUrlLoading: (controller, navigationAction) async {
                   final url = navigationAction.request.url!.toString();
-                  if (!url.startsWith(appConfig.envConfig.baseUrl)) {
+                  if (!url.startsWith(appConfig.baseUrl)) {
                     await _launchURL(url);
                     return NavigationActionPolicy.CANCEL;
                   }

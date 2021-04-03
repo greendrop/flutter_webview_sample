@@ -9,22 +9,19 @@ class NavigationControls extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<InAppWebViewController>(
-      future: _mainWebViewControllerFuture,
-      builder: (BuildContext context,
-          AsyncSnapshot<InAppWebViewController> snapshot) {
-        final mainWebViewReady =
-            snapshot.connectionState == ConnectionState.done;
-        final controller = snapshot.data;
-        return Row(
-          children: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.replay),
-              onPressed: !mainWebViewReady ? null : controller!.reload,
-            ),
-          ],
-        );
-      },
+    final snapshot = useFuture(_mainWebViewControllerFuture, initialData: null);
+    return Row(
+      children: <Widget>[
+        IconButton(
+          icon: const Icon(Icons.replay),
+          onPressed: !snapshot.hasData
+              ? null
+              : () {
+                  final controller = snapshot.data;
+                  controller!.reload();
+                },
+        ),
+      ],
     );
   }
 }

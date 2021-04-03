@@ -32,7 +32,7 @@ class DrawerContent extends HookWidget {
                 ? null
                 : () {
                     Navigator.pop(context);
-                    final url = appConfig.envConfig.baseUrl;
+                    final url = appConfig.baseUrl;
                     mainWebViewState.controller
                         ?.loadUrl(urlRequest: URLRequest(url: Uri.parse(url)));
                   },
@@ -43,8 +43,7 @@ class DrawerContent extends HookWidget {
                 ? null
                 : () {
                     Navigator.pop(context);
-                    final url =
-                        '${appConfig.envConfig.baseUrl}/orders/index.html';
+                    final url = '${appConfig.baseUrl}/orders/index.html';
                     mainWebViewState.controller
                         ?.loadUrl(urlRequest: URLRequest(url: Uri.parse(url)));
                   },
@@ -55,8 +54,7 @@ class DrawerContent extends HookWidget {
                 ? null
                 : () {
                     Navigator.pop(context);
-                    final url =
-                        '${appConfig.envConfig.baseUrl}/news/index.html';
+                    final url = '${appConfig.baseUrl}/news/index.html';
                     mainWebViewState.controller
                         ?.loadUrl(urlRequest: URLRequest(url: Uri.parse(url)));
                   },
@@ -67,8 +65,7 @@ class DrawerContent extends HookWidget {
                 ? null
                 : () {
                     Navigator.pop(context);
-                    final url =
-                        '${appConfig.envConfig.baseUrl}/forms/index.html';
+                    final url = '${appConfig.baseUrl}/forms/index.html';
                     mainWebViewState.controller
                         ?.loadUrl(urlRequest: URLRequest(url: Uri.parse(url)));
                   },
@@ -79,8 +76,7 @@ class DrawerContent extends HookWidget {
                 ? null
                 : () {
                     Navigator.pop(context);
-                    final url =
-                        '${appConfig.envConfig.baseUrl}/javascript/index.html';
+                    final url = '${appConfig.baseUrl}/javascript/index.html';
                     mainWebViewState.controller
                         ?.loadUrl(urlRequest: URLRequest(url: Uri.parse(url)));
                   },

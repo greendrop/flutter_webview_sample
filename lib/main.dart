@@ -4,12 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_webview_sample/app_root.dart';
 import 'package:flutter_webview_sample/config/app_config.dart';
-import 'package:flutter_webview_sample/config/environments/prod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 Future<void> main() async {
-  final _ = AppConfig()..envConfig = EnvConfigProd();
+  final _ = AppConfig().load();
 
   WidgetsFlutterBinding.ensureInitialized();
   await Permission.camera.request();
