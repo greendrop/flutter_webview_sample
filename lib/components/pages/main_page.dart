@@ -37,13 +37,7 @@ class MainPage extends HookWidget {
     final mainWebViewControllerCompleter =
         useState(Completer<InAppWebViewController>());
     final index = useState(webViewIndex);
-    final promptTextController = useState(TextEditingController());
-
-    useEffect(() {
-      return () {
-        promptTextController.value.dispose();
-      };
-    }, []);
+    final promptTextController = useTextEditingController();
 
     return WillPopScope(
       onWillPop: () async {
@@ -134,88 +128,15 @@ class MainPage extends HookWidget {
                 onConsoleMessage: (controller, consoleMessage) {
                   print(consoleMessage);
                 },
-                onJsAlert: (controller, jsAlertRequest) async {
-                  final completer = Completer<JsAlertResponse?>();
-                  final response = JsAlertResponse();
-                  await showDialog<String>(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          content: Text(jsAlertRequest.message.toString()),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, 'CLOSE'),
-                              child: const Text('CLOSE'),
-                            ),
-                          ],
-                        );
-                      });
-                  response.handledByClient = true;
-                  completer.complete(response);
-                  return completer.future;
+                onJsAlert: (controller, jsAlertRequest) {
+                  return _onJsAlert(context, controller, jsAlertRequest);
                 },
-                onJsConfirm: (controller, jsConfirmRequest) async {
-                  final completer = Completer<JsConfirmResponse>();
-                  final response = JsConfirmResponse();
-                  final result = await showDialog<String>(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          content: Text(jsConfirmRequest.message.toString()),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, 'CANCEL'),
-                              child: const Text('CANCEL'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, 'OK'),
-                              child: const Text('OK'),
-                            ),
-                          ],
-                        );
-                      });
-                  response
-                    ..handledByClient = true
-                    ..action = result == 'OK'
-                        ? JsConfirmResponseAction.CONFIRM
-                        : JsConfirmResponseAction.CANCEL;
-                  completer.complete(response);
-                  return completer.future;
+                onJsConfirm: (controller, jsConfirmRequest) {
+                  return _onJsConfirm(context, controller, jsConfirmRequest);
                 },
                 onJsPrompt: (controller, jsPromptRequest) async {
-                  final completer = Completer<JsPromptResponse>();
-                  final response = JsPromptResponse();
-                  promptTextController.value.text = '';
-                  final result = await showDialog<String>(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          content: TextField(
-                              controller: promptTextController.value,
-                              decoration: InputDecoration(
-                                hintText: jsPromptRequest.message.toString(),
-                              ),
-                              autofocus: true),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, 'CANCEL'),
-                              child: const Text('CANCEL'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, 'OK'),
-                              child: const Text('OK'),
-                            ),
-                          ],
-                        );
-                      });
-                  response
-                    ..handledByClient = true
-                    ..value = promptTextController.value.text
-                    ..action = result == 'OK'
-                        ? JsPromptResponseAction.CONFIRM
-                        : JsPromptResponseAction.CANCEL;
-                  completer.complete(response);
-                  return completer.future;
+                  return _onJsPrompt(context, promptTextController, controller,
+                      jsPromptRequest);
                 }),
             Container(child: const Center(child: CircularProgressIndicator())),
           ])),
@@ -254,5 +175,100 @@ class MainPage extends HookWidget {
     if (await canLaunch(url)) {
       await launch(url);
     }
+  }
+
+  Future<JsAlertResponse?> _onJsAlert(BuildContext context,
+      InAppWebViewController controller, JsAlertRequest jsAlertRequest) async {
+    final completer = Completer<JsAlertResponse?>();
+    final response = JsAlertResponse();
+    await showDialog<String>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Text(jsAlertRequest.message.toString()),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'CLOSE'),
+                child: const Text('CLOSE'),
+              ),
+            ],
+          );
+        });
+    response.handledByClient = true;
+    completer.complete(response);
+    return completer.future;
+  }
+
+  Future<JsConfirmResponse?> _onJsConfirm(
+      BuildContext context,
+      InAppWebViewController controller,
+      JsConfirmRequest jsConfirmRequest) async {
+    final completer = Completer<JsConfirmResponse>();
+    final response = JsConfirmResponse();
+    final result = await showDialog<String>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Text(jsConfirmRequest.message.toString()),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'CANCEL'),
+                child: const Text('CANCEL'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'OK'),
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        });
+    response
+      ..handledByClient = true
+      ..action = result == 'OK'
+          ? JsConfirmResponseAction.CONFIRM
+          : JsConfirmResponseAction.CANCEL;
+    completer.complete(response);
+    return completer.future;
+  }
+
+  Future<JsPromptResponse?> _onJsPrompt(
+      BuildContext context,
+      TextEditingController promptTextController,
+      InAppWebViewController controller,
+      JsPromptRequest jsPromptRequest) async {
+    final completer = Completer<JsPromptResponse>();
+    final response = JsPromptResponse();
+
+    promptTextController.text = '';
+    final result = await showDialog<String>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: TextField(
+                controller: promptTextController,
+                decoration: InputDecoration(
+                  hintText: jsPromptRequest.message.toString(),
+                ),
+                autofocus: true),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'CANCEL'),
+                child: const Text('CANCEL'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'OK'),
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        });
+    response
+      ..handledByClient = true
+      ..value = promptTextController.text
+      ..action = result == 'OK'
+          ? JsPromptResponseAction.CONFIRM
+          : JsPromptResponseAction.CANCEL;
+    completer.complete(response);
+    return completer.future;
   }
 }
