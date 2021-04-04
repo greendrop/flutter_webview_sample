@@ -16,6 +16,11 @@ jobs:
       - name: flutter pub get
         run: |
           flutter pub get
+
+      - name: create .env
+        run: |
+          cp .env.example .env
+
       - name: flutter analyze
         run: |
           flutter analyze
