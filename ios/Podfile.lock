@@ -8,6 +8,8 @@ PODS:
     - Flutter
     - OrderedSet (~> 5.0)
   - OrderedSet (5.0.0)
+  - package_info (0.0.1):
+    - Flutter
   - "permission_handler (5.1.0+2)":
     - Flutter
   - url_launcher (0.0.1):
@@ -16,6 +18,7 @@ PODS:
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_inappwebview (from `.symlinks/plugins/flutter_inappwebview/ios`)
+  - package_info (from `.symlinks/plugins/package_info/ios`)
   - permission_handler (from `.symlinks/plugins/permission_handler/ios`)
   - url_launcher (from `.symlinks/plugins/url_launcher/ios`)
 
@@ -28,6 +31,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_inappwebview:
     :path: ".symlinks/plugins/flutter_inappwebview/ios"
+  package_info:
+    :path: ".symlinks/plugins/package_info/ios"
   permission_handler:
     :path: ".symlinks/plugins/permission_handler/ios"
   url_launcher:
@@ -37,6 +42,7 @@ SPEC CHECKSUMS:
   Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
   flutter_inappwebview: bfd58618f49dc62f2676de690fc6dcda1d6c3721
   OrderedSet: aaeb196f7fef5a9edf55d89760da9176ad40b93c
+  package_info: 873975fc26034f0b863a300ad47e7f1ac6c7ec62
   permission_handler: ccb20a9fad0ee9b1314a52b70b76b473c5f8dab0
   url_launcher: 6fef411d543ceb26efce54b05a0a40bfd74cbbef
 

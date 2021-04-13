@@ -4,6 +4,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_webview_sample/config/app_config.dart';
 import 'package:flutter_webview_sample/states/state_provider.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:package_info/package_info.dart';
 
 class DrawerContent extends HookWidget {
   @override
@@ -81,7 +82,35 @@ class DrawerContent extends HookWidget {
                         ?.loadUrl(urlRequest: URLRequest(url: Uri.parse(url)));
                   },
           ),
+          ListTile(
+            title: const Text('About'),
+            onTap: () async {
+              final packageInfo = await PackageInfo.fromPlatform();
+              showAboutDialog(
+                context: context,
+                applicationVersion: packageInfo.version,
+                applicationIcon: AppIcon(),
+              );
+            },
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class AppIcon extends HookWidget {
+  static const size = 32.0;
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: FlutterLogo(),
+        ),
       ),
     );
   }
