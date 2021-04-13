@@ -105,7 +105,7 @@ class AppIcon extends HookWidget {
   Widget build(BuildContext context) {
     return const Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        padding: EdgeInsets.symmetric(vertical: 8),
         child: SizedBox(
           width: size,
           height: size,
