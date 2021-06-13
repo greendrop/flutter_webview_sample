@@ -14,6 +14,7 @@ class DrawerContent extends HookWidget {
 
     return Drawer(
       child: ListView(
+        padding: EdgeInsets.zero,
         children: <Widget>[
           const DrawerHeader(
             decoration: BoxDecoration(
